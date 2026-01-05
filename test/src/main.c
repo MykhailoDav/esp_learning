@@ -7,7 +7,7 @@
 static const char *TAG = "MAIN";
 
 #define TTP223_PIN GPIO_NUM_9
-#define BTN_DEB 50  // тайм-аут смены состояния, мс
+#define BTN_DEB 50
 
 static int counter = 0;
 
@@ -72,19 +72,18 @@ void app_main(void)
     // Initial display
     update_display(counter);
     
-    // AlexGyver debounce algorithm (type 3 - LPF)
     bool pState = false;
     uint32_t tmr = 0;
     
     while(1)
     {   
-        bool state = gpio_get_level(TTP223_PIN);  // TTP223: 1 = touched, 0 = released
+        bool state = gpio_get_level(TTP223_PIN); 
         
         if (pState != state) {
             if (!tmr) {
-                tmr = xTaskGetTickCount() * portTICK_PERIOD_MS;  // первое изменение
-            } else if ((xTaskGetTickCount() * portTICK_PERIOD_MS - tmr) >= BTN_DEB) {  // вышел тайм-аут
-                pState = state;  // запомнить состояние
+                tmr = xTaskGetTickCount() * portTICK_PERIOD_MS;  
+            } else if ((xTaskGetTickCount() * portTICK_PERIOD_MS - tmr) >= BTN_DEB) { 
+                pState = state; 
                 
                 if (state) {
                     counter++;
@@ -95,9 +94,9 @@ void app_main(void)
                 }
             }
         } else {
-            tmr = 0;  // сброс
+            tmr = 0; 
         }
         
-        vTaskDelay(1);  // минимальная задержка для FreeRTOS
+        vTaskDelay(1);
     }
 }

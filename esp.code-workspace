@@ -7,6 +7,14 @@
 		{
 			"name": "test",
 			"path": "test"
+		},
+		{
+			"name": "nfc",
+			"path": "nfc"
+		},
+		{
+			"name": "i2c_search",
+			"path": "i2c_search"
 		}
 	],
 	"settings": {}
