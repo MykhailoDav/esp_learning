@@ -9,12 +9,24 @@
 			"path": "test"
 		},
 		{
-			"name": "nfc",
-			"path": "nfc"
-		},
-		{
 			"name": "i2c_search",
 			"path": "i2c_search"
+		},
+		{
+			"name": "lab_1",
+			"path": "lab_1"
+		},
+		{
+			"name": "lab_2.1_ADC:DAC_LedBrightness",
+			"path": "lab_2/lab_2.1_ADC:DAC_LedBrightness"
+		},
+		{
+			"name": "lab_2.2_i2c",
+			"path": "lab_2/lab_2.2_i2c"
+		},
+		{
+			"name": "lab_2.3_nfc",
+			"path": "lab_2/lab_2.3_nfc"
 		}
 	],
 	"settings": {}
