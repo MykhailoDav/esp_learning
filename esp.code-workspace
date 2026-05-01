@@ -27,6 +27,30 @@
 		{
 			"name": "lab_2.3_nfc",
 			"path": "lab_2/lab_2.3_nfc"
+		},
+		{
+			"name": "lab_2.4_1Wire",
+			"path": "lab_2/lab_2.4_1Wire"
+		},
+		{
+			"name": "lab_2.5_complex",
+			"path": "lab_2/lab_2.5_complex"
+		},
+		{
+			"name": "lab_3.1",
+			"path": "lab_3/lab_3.1"
+		},
+		{
+			"name": "lab_3.2",
+			"path": "lab_3/lab_3.2"
+		},
+		{
+			"name": "lab_3.3",
+			"path": "lab_3/lab_3.3"
+		},
+		{
+			"name": "lab_4.1",
+			"path": "lab_4/lab_4.1"
 		}
 	],
 	"settings": {}
