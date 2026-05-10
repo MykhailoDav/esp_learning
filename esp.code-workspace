@@ -17,8 +17,8 @@
 			"path": "lab_1"
 		},
 		{
-			"name": "lab_2.1_ADC:DAC_LedBrightness",
-			"path": "lab_2/lab_2.1_ADC:DAC_LedBrightness"
+			"name": "lab_2.1_ADC_DAC_LedBrightness",
+			"path": "lab_2/lab_2.1_ADC_DAC_LedBrightness"
 		},
 		{
 			"name": "lab_2.2_i2c",
@@ -51,6 +51,18 @@
 		{
 			"name": "lab_4.1",
 			"path": "lab_4/lab_4.1"
+		},
+		{
+			"name": "lab_4.2",
+			"path": "lab_4/lab_4.2"
+		},
+		{
+			"name": "lab_4.3",
+			"path": "lab_4/lab_4.3"
+		},
+		{
+			"name": "lab_4.4",
+			"path": "lab_4/lab_4.4"
 		}
 	],
 	"settings": {}

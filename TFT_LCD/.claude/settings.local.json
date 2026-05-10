@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(C:\\\\Users\\\\davud\\\\.platformio\\\\penv\\\\Scripts\\\\platformio.exe run *)",
+      "PowerShell(& \"C:\\\\Users\\\\davud\\\\.platformio\\\\penv\\\\Scripts\\\\platformio.exe\" run --target erase -d \"D:\\\\III_kurs\\\\esp_embeded\\\\esp_learning\\\\lab_4\\\\lab_4.4\")"
+    ]
+  }
+}
