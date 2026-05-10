@@ -5,12 +5,6 @@
  *   DS18B20      1-Wire  -> GPIO4   (4.7 kOhm pull-up to 3.3V)
  *   BMP280       I2C     -> SDA=GPIO41, SCL=GPIO42, addr=0x76
  *   Photoresistor ADC    -> GPIO1   (10 kOhm divider: 3.3V->[10k]->GPIO1->[photo]->GND)
- *
- * Root cause of all SPIFFS corruption: SPIFFS.format() only rewrites metadata
- * headers but does NOT do a hardware sector erase. Old data bits (0) remain in
- * NOR-flash pages and bleed through into new writes (NOR can only 1->0, not 0->1
- * without a sector erase). Fix: esp_partition_erase_range() performs the real
- * sector erase before SPIFFS.begin().
  */
 
 #include <Arduino.h>
@@ -20,7 +14,7 @@
 #include <DallasTemperature.h>
 #include <math.h>
 #include "bmp280.h"
-#include "esp_partition.h"   // for esp_partition_erase_range
+#include "esp_spiffs.h"   // esp_spiffs_format()
 
 // Піни для підключення
 #define ONE_WIRE_BUS  4
@@ -45,26 +39,20 @@ struct Sample {
 int           sampleIdx      = 0;
 unsigned long lastSampleTime = 0;
 
-// --- Hardware-erase the SPIFFS partition, then mount -------------------------
+// --- Format via ESP-IDF API, then mount clean --------------------------------
 void initSPIFFS() {
-    const esp_partition_t* part = esp_partition_find_first(
-        ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_SPIFFS, NULL);
-
-    if (part == NULL) {
-        Serial.println("FATAL: SPIFFS partition not found");
-        while (true) delay(1000);
-    }
-
-    Serial.printf("[SPIFFS] Erasing partition (0x%08x, %u B)...\n",
-                  part->address, part->size);
-    esp_err_t err = esp_partition_erase_range(part, 0, part->size);
+    // esp_spiffs_format() does its own erase+format+deinit internally.
+    // Using it avoids the "failed-mount → dirty internal state" problem
+    // that happens when begin(true) tries to mount an erased partition first.
+    Serial.println("[SPIFFS] Formatting...");
+    esp_err_t err = esp_spiffs_format(NULL);   // NULL = default partition label
     if (err != ESP_OK) {
-        Serial.printf("FATAL: erase failed: %s\n", esp_err_to_name(err));
+        Serial.printf("FATAL: format failed: %s\n", esp_err_to_name(err));
         while (true) delay(1000);
     }
-    Serial.println("[SPIFFS] Partition erased OK");
+    Serial.println("[SPIFFS] Format OK");
 
-    if (!SPIFFS.begin(true)) {   // true = format fresh after erase
+    if (!SPIFFS.begin(false)) {   // false = partition is already formatted
         Serial.println("FATAL: SPIFFS mount failed");
         while (true) delay(1000);
     }
@@ -84,29 +72,29 @@ void saveAndPrint() {
                String(samples[i].light)          + "\n";
     }
 
-    // Write the whole String at once with write() — no format-buffer limit
-    File f = SPIFFS.open(DATA_FILE, FILE_WRITE);
-    if (!f) { Serial.println("ERROR: cannot create file!"); return; }
-    size_t written = f.write((const uint8_t*)csv.c_str(), csv.length());
-    f.close();
-    Serial.printf("[SPIFFS] Written %d/%d bytes. Used: %u B\n",
+    // Open "w+" = create/truncate + allow read on the SAME handle.
+    // Avoids close→reopen which requires SPIFFS to find data pages in flash
+    // (those pages may still be in the write cache and not yet committed).
+    FILE* fp = fopen("/spiffs" DATA_FILE, "w+");
+    if (!fp) { Serial.println("ERROR: fopen(w+) failed"); return; }
+
+    size_t written = fwrite(csv.c_str(), 1, csv.length(), fp);
+    fflush(fp);
+    Serial.printf("[SPIFFS] Written %u/%u bytes. Used: %u B\n",
                   written, csv.length(), SPIFFS.usedBytes());
+
+    // Seek to start and read back from the same handle — no flush needed
+    rewind(fp);
 
     Serial.println("\n==================================================");
     Serial.println("   ПОТОЧНИЙ ВМІСТ ФАЙЛУ " DATA_FILE);
     Serial.println("==================================================");
 
-    f = SPIFFS.open(DATA_FILE, FILE_READ);
-    if (!f) { Serial.println("ERROR: cannot open file!"); return; }
-
-    f.setTimeout(0);
-    char buf[64];
-    int  n;
-    while ((n = f.readBytes(buf, 63)) > 0) {
-        buf[n] = '\0';
-        Serial.print(buf);
+    int c;
+    while ((c = fgetc(fp)) != EOF) {
+        Serial.write((uint8_t)c);
     }
-    f.close();
+    fclose(fp);
 
     Serial.println("\n==================================================");
     Serial.println("Легенда: Час | DS18B20 | BMP280 | Тиск | Освітленість");
